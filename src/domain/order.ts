@@ -4,20 +4,18 @@ import { User } from './user';
 
 export type OrderStatus = 'new' | 'delivery' | 'completed';
 
-export type Order = {
+export class Order {
   user: UniqueId;
   cart: Cart;
   created: DateTimeString;
   status: OrderStatus;
   total: PriceCents;
-}
 
-export const createOrder = (user: User, cart: Cart): Order => {
-  return {
-    user: user.id,
-    cart,
-    created: new Date().toISOString(),
-    status: 'new',
-    total: totalPrice(cart.products),
-  };
+  constructor(user: User, cart: Cart) {
+    this.user = user.id;
+    this.cart = cart;
+    this.created = new Date().toISOString();
+    this.status = 'new';
+    this.total = totalPrice(cart.products);
+  }
 }
