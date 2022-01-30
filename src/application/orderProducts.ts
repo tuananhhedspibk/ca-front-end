@@ -1,6 +1,9 @@
 import { Cart } from '../domain/cart';
 import { Order } from '../domain/order';
 import { User } from '../domain/user';
+import { useNotifier } from '../services/notificationAdapter';
+import { usePayment } from '../services/paymentAdapter';
+import { useCartStorage, useOrdersStorage } from '../services/storageAdapter';
 import {
   CartStorageService,
   NotificationService,
@@ -8,12 +11,24 @@ import {
   PaymentService,
 } from './ports';
 
-const payment: PaymentService = {};
-const notifier: NotificationService = {};
-const orderStorage: OrdersStorageService = {};
-const cartStorage: CartStorageService = {};
+type OrderProductDependencies = {
+  payment: PaymentService;
+  notifier: NotificationService;
+  orderStorage: OrdersStorageService;
+  cartStorage: CartStorageService;
+};
 
-const orderProducts = async (user: User, cart: Cart) => {
+const orderProducts = async (
+  user: User,
+  cart: Cart,
+  dependencies: OrderProductDependencies,
+) => {
+  const {
+    payment,
+    notifier,
+    orderStorage,
+    cartStorage,
+  } = dependencies;
   const order = new Order(user, cart);
   
   const paid = await payment.tryPay(order.total);
@@ -22,4 +37,20 @@ const orderProducts = async (user: User, cart: Cart) => {
   const { orders } = orderStorage;
   orderStorage.updateOrders([...orders, order]);
   cartStorage.emptyCart();
+}
+
+export const useOrderProducts = () => {
+  const payment: PaymentService = usePayment();
+  const notifier: NotificationService = useNotifier();
+  const orderStorage: OrdersStorageService = useOrdersStorage();
+  const cartStorage: CartStorageService = useCartStorage();
+
+  return (user: User, cart: Cart) => (
+    orderProducts(user, cart, {
+      payment,
+      notifier,
+      orderStorage,
+      cartStorage,
+    })
+  );
 }
