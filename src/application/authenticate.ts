@@ -22,10 +22,13 @@ export const useAuthenticate = () => {
   const auth = useAuth();
   const storage = useUserStorage();
 
-  return (name: UserName, email: Email) => (
-    authenticate(name, email, {
-      storage,
-      auth
-    })
-  );
+  return {
+    authenticate: (name: UserName, email: Email) => (
+      authenticate(name, email, {
+        storage,
+        auth
+      })
+    ),
+    user: storage.user,
+  };
 }
